@@ -26,20 +26,26 @@ function getClientIp(req) {
   )
 }
 
+function send(res, status, body) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(body))
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return send(res, 405, { error: 'Method not allowed', got: req.method })
   }
 
   const ip = getClientIp(req)
   if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Rate limit exceeded. Try again in an hour.' })
+    return send(res, 429, { error: 'Rate limit exceeded. Try again in an hour.' })
   }
 
   const { country, age, meeting, context } = req.body || {}
 
   if (!country || !age || !meeting) {
-    return res.status(400).json({ error: 'Missing required fields' })
+    return send(res, 400, { error: 'Missing required fields' })
   }
 
   const contextLine = context?.trim()
@@ -77,16 +83,16 @@ Example: ["starter one", "starter two", "starter three"]`
 
     const text = response.content[0].text
     const match = text.match(/\[[\s\S]*\]/)
-    if (!match) return res.status(500).json({ error: 'Failed to parse response' })
+    if (!match) return send(res, 500, { error: 'Failed to parse response', raw: text })
 
     const starters = JSON.parse(match[0])
     if (!Array.isArray(starters) || starters.length !== 3) {
-      return res.status(500).json({ error: 'Unexpected response format' })
+      return send(res, 500, { error: 'Unexpected response format' })
     }
 
-    res.status(200).json({ starters })
+    send(res, 200, { starters })
   } catch (err) {
     console.error('Generate error:', err)
-    res.status(500).json({ error: 'Generation failed', detail: err?.message || String(err) })
+    send(res, 500, { error: 'Generation failed', detail: err?.message || String(err) })
   }
 }
