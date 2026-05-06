@@ -32,7 +32,7 @@ function send(res, status, body) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return send(res, 405, { error: 'Method not allowed', got: req.method })
+    return send(res, 405, { error: 'Method not allowed' })
   }
 
   const ip = getClientIp(req)
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
-    return send(res, 500, { error: 'ANTHROPIC_API_KEY not set in environment' })
+    return send(res, 500, { error: 'Server configuration error' })
   }
 
   const contextLine = context?.trim()
@@ -91,24 +91,25 @@ Example: ["starter one", "starter two", "starter three"]`
     })
 
     if (!response.ok) {
-      const errText = await response.text()
-      return send(res, 500, { error: 'Anthropic API error', status: response.status, detail: errText })
+      console.error('Anthropic API error:', response.status)
+      return send(res, 500, { error: 'Generation failed' })
     }
 
     const data = await response.json()
     const text = data.content?.[0]?.text
-    if (!text) return send(res, 500, { error: 'Empty response from Anthropic', raw: data })
+    if (!text) return send(res, 500, { error: 'Generation failed' })
 
     const match = text.match(/\[[\s\S]*\]/)
-    if (!match) return send(res, 500, { error: 'Failed to parse response', raw: text })
+    if (!match) return send(res, 500, { error: 'Generation failed' })
 
     const starters = JSON.parse(match[0])
     if (!Array.isArray(starters) || starters.length !== 3) {
-      return send(res, 500, { error: 'Unexpected response format' })
+      return send(res, 500, { error: 'Generation failed' })
     }
 
     send(res, 200, { starters })
   } catch (err) {
-    send(res, 500, { error: 'Fetch failed', detail: err?.message || String(err) })
+    console.error('Generate error:', err)
+    send(res, 500, { error: 'Generation failed' })
   }
 }
