@@ -77,8 +77,13 @@ If additional context was provided, at least one starter should reference it.
 Respond ONLY with a JSON array of 3 strings. No preamble, no markdown.
 Example: ["starter one", "starter two", "starter three"]`
 
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    return send(res, 500, { error: 'ANTHROPIC_API_KEY not set in environment' })
+  }
+
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const client = new Anthropic({ apiKey })
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
