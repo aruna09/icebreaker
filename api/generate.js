@@ -87,6 +87,6 @@ Example: ["starter one", "starter two", "starter three"]`
     res.status(200).json({ starters })
   } catch (err) {
     console.error('Generate error:', err)
-    res.status(500).json({ error: 'Generation failed' })
+    res.status(500).json({ error: 'Generation failed', detail: err?.message || String(err) })
   }
 }

@@ -52,12 +52,15 @@ export default function App() {
         setError("You've hit the rate limit — come back in an hour.")
         return
       }
-      if (!res.ok) throw new Error('API error')
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(errBody.detail || errBody.error || 'API error')
+      }
 
       const { starters: cards } = await res.json()
       revealCards(cards)
-    } catch {
-      setError("Couldn't generate — try again")
+    } catch (err) {
+      setError(err?.message || "Couldn't generate — try again")
     } finally {
       setLoading(false)
     }
