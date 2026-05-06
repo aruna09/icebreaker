@@ -360,6 +360,40 @@ textarea:focus {
   color: var(--text-muted);
 }
 
+/* Skeleton / shimmer state while card content streams in */
+.flip-card.skeleton .flip-card-front {
+  cursor: default;
+}
+
+.card-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 70%;
+}
+
+.shimmer-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.12) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.shimmer-line.short {
+  width: 55%;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+
 .flip-card-back {
   transform: rotateY(180deg);
   text-align: center;
