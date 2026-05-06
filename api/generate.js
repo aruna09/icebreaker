@@ -33,6 +33,11 @@ function send(res, status, body) {
 }
 
 export default async function handler(req, res) {
+  // DEBUG: echo method so we can see exactly what Vercel passes
+  if (req.url?.includes('_debug')) {
+    return send(res, 200, { method: req.method, url: req.url, body: req.body })
+  }
+
   if (req.method !== 'POST') {
     return send(res, 405, { error: 'Method not allowed', got: req.method })
   }
