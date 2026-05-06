@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
-
 // In-memory rate limit store (best-effort for single Vercel instance)
 const rateLimitMap = new Map()
 const RATE_LIMIT = 10
@@ -33,11 +31,6 @@ function send(res, status, body) {
 }
 
 export default async function handler(req, res) {
-  // DEBUG: echo method so we can see exactly what Vercel passes
-  if (req.url?.includes('_debug')) {
-    return send(res, 200, { method: req.method, url: req.url, body: req.body })
-  }
-
   if (req.method !== 'POST') {
     return send(res, 405, { error: 'Method not allowed', got: req.method })
   }
@@ -51,6 +44,11 @@ export default async function handler(req, res) {
 
   if (!country || !age || !meeting) {
     return send(res, 400, { error: 'Missing required fields' })
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    return send(res, 500, { error: 'ANTHROPIC_API_KEY not set in environment' })
   }
 
   const contextLine = context?.trim()
@@ -77,21 +75,30 @@ If additional context was provided, at least one starter should reference it.
 Respond ONLY with a JSON array of 3 strings. No preamble, no markdown.
 Example: ["starter one", "starter two", "starter three"]`
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    return send(res, 500, { error: 'ANTHROPIC_API_KEY not set in environment' })
-  }
-
   try {
-    const client = new Anthropic({ apiKey })
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 250,
-      messages: [{ role: 'user', content: prompt }],
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 250,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     })
 
-    const text = response.content[0].text
+    if (!response.ok) {
+      const errText = await response.text()
+      return send(res, 500, { error: 'Anthropic API error', status: response.status, detail: errText })
+    }
+
+    const data = await response.json()
+    const text = data.content?.[0]?.text
+    if (!text) return send(res, 500, { error: 'Empty response from Anthropic', raw: data })
+
     const match = text.match(/\[[\s\S]*\]/)
     if (!match) return send(res, 500, { error: 'Failed to parse response', raw: text })
 
@@ -102,7 +109,6 @@ Example: ["starter one", "starter two", "starter three"]`
 
     send(res, 200, { starters })
   } catch (err) {
-    console.error('Generate error:', err)
-    send(res, 500, { error: 'Generation failed', detail: err?.message || String(err) })
+    send(res, 500, { error: 'Fetch failed', detail: err?.message || String(err) })
   }
 }
