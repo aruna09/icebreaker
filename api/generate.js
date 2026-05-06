@@ -26,19 +26,6 @@ function getClientIp(req) {
   )
 }
 
-// Extract complete quoted strings from a partial JSON array as it streams in.
-// Matches "..." including escaped quotes — only returns fully closed strings.
-function extractStarters(text) {
-  const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-  const matches = []
-  const regex = /"((?:[^"\\]|\\.)*)"/g
-  let match
-  while ((match = regex.exec(clean)) !== null) {
-    matches.push(match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'))
-  }
-  return matches
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -79,49 +66,27 @@ If additional context was provided, at least one starter should reference it.
 Respond ONLY with a JSON array of 3 strings. No preamble, no markdown.
 Example: ["starter one", "starter two", "starter three"]`
 
-  // SSE headers
-  res.setHeader('Content-Type', 'text/event-stream')
-  res.setHeader('Cache-Control', 'no-cache')
-  res.setHeader('Connection', 'keep-alive')
-  res.setHeader('X-Accel-Buffering', 'no') // disable Nginx buffering on Vercel
-
-  const sendEvent = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`)
-
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-    const stream = client.messages.stream({
+    const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 250,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    let buffer = ''
-    let sent = 0
+    const text = response.content[0].text
+    const match = text.match(/\[[\s\S]*\]/)
+    if (!match) return res.status(500).json({ error: 'Failed to parse response' })
 
-    for await (const event of stream) {
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        buffer += event.delta.text
-
-        // Try to extract newly completed starters
-        const all = extractStarters(buffer)
-        while (sent < all.length && sent < 3) {
-          sendEvent({ starter: all[sent] })
-          sent++
-        }
-
-        if (sent >= 3) break
-      }
+    const starters = JSON.parse(match[0])
+    if (!Array.isArray(starters) || starters.length !== 3) {
+      return res.status(500).json({ error: 'Unexpected response format' })
     }
 
-    sendEvent('[DONE]')
-    res.end()
+    res.status(200).json({ starters })
   } catch (err) {
     console.error('Generate error:', err)
-    sendEvent({ error: 'Generation failed' })
-    res.end()
+    res.status(500).json({ error: 'Generation failed' })
   }
 }

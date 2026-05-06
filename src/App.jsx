@@ -19,17 +19,27 @@ export default function App() {
   const [meeting, setMeeting] = useState('')
   const [context, setContext] = useState('')
 
-  // starters: null = idle, [] = streaming in progress, ['s1',...] = done
-  const [starters, setStarters] = useState(null)
-  const [streaming, setStreaming] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [starters, setStarters] = useState(null)   // null | string[]
+  const [visible, setVisible] = useState(0)         // how many cards are shown
   const [flipped, setFlipped] = useState([false, false, false])
   const [error, setError] = useState('')
 
+  const revealCards = (cards) => {
+    setStarters(cards)
+    setVisible(0)
+    // stagger each card appearing: 0ms, 350ms, 700ms
+    cards.forEach((_, i) => {
+      setTimeout(() => setVisible(i + 1), i * 350)
+    })
+  }
+
   const generate = async () => {
-    setStreaming(true)
-    setStarters([])           // show card slots immediately
-    setFlipped([false, false, false])
+    setLoading(true)
     setError('')
+    setStarters(null)
+    setVisible(0)
+    setFlipped([false, false, false])
 
     try {
       const res = await fetch('/api/generate', {
@@ -40,45 +50,16 @@ export default function App() {
 
       if (res.status === 429) {
         setError("You've hit the rate limit — come back in an hour.")
-        setStarters(null)
         return
       }
       if (!res.ok) throw new Error('API error')
 
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buf = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buf += decoder.decode(value, { stream: true })
-
-        // Split on SSE double-newline boundaries
-        const parts = buf.split('\n\n')
-        buf = parts.pop() ?? ''   // keep any incomplete tail
-
-        for (const part of parts) {
-          if (!part.startsWith('data: ')) continue
-          const raw = part.slice(6).trim()
-          if (raw === '"[DONE]"' || raw === '[DONE]') break
-          try {
-            const payload = JSON.parse(raw)
-            if (payload.error) throw new Error(payload.error)
-            if (payload.starter) {
-              setStarters(prev => [...(prev ?? []), payload.starter])
-            }
-          } catch {
-            // partial chunk — ignore
-          }
-        }
-      }
+      const { starters: cards } = await res.json()
+      revealCards(cards)
     } catch {
       setError("Couldn't generate — try again")
-      setStarters(null)
     } finally {
-      setStreaming(false)
+      setLoading(false)
     }
   }
 
@@ -94,19 +75,18 @@ export default function App() {
     setMeeting('')
     setContext('')
     setStarters(null)
+    setVisible(0)
     setFlipped([false, false, false])
     setError('')
-    setStreaming(false)
   }
 
   const flipCard = (i) => {
-    // Only flip if the starter has arrived
-    if (starters?.[i] !== undefined) {
+    if (i < visible) {
       setFlipped(prev => prev.map((f, idx) => idx === i ? !f : f))
     }
   }
 
-  const showCards = starters !== null   // true once generation starts
+  const showCards = starters !== null
 
   return (
     <div className="app">
@@ -117,8 +97,8 @@ export default function App() {
         </h1>
       </header>
 
-      {/* Step dots — only during the 3-step flow */}
-      {!showCards && (
+      {/* Step dots */}
+      {!showCards && !loading && (
         <div className="dots">
           {[1, 2, 3].map(n => (
             <div key={n} className={`dot ${step === n ? 'active' : ''}`} />
@@ -127,7 +107,7 @@ export default function App() {
       )}
 
       {/* ── Step 1: Country ── */}
-      {step === 1 && !showCards && (
+      {step === 1 && !showCards && !loading && (
         <div className="card">
           <div className="step-label">Step 1 of 3</div>
           <h2 className="step-title">Where are they from?</h2>
@@ -151,7 +131,7 @@ export default function App() {
       )}
 
       {/* ── Step 2: Age + Meeting ── */}
-      {step === 2 && !showCards && (
+      {step === 2 && !showCards && !loading && (
         <div className="card">
           <div className="step-label">Step 2 of 3</div>
           <h2 className="step-title">Tell me about the call.</h2>
@@ -187,7 +167,7 @@ export default function App() {
       )}
 
       {/* ── Step 3: Context + Generate ── */}
-      {step === 3 && !showCards && (
+      {step === 3 && !showCards && !loading && (
         <div className="card">
           <div className="step-label">Step 3 of 3</div>
           <h2 className="step-title">Anything you know about them?</h2>
@@ -205,59 +185,50 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Cards (stream in one by one) ── */}
-      {showCards && (
+      {/* ── Loading spinner ── */}
+      {loading && (
+        <div className="card">
+          <div className="spinner-wrap">
+            <div className="spinner" />
+            <div className="spinner-text">Reading the room…</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cards (staggered reveal) ── */}
+      {showCards && !loading && (
         <>
           <div className="results-header">
             <h2 className="results-title">Your openers</h2>
-            <p className="results-hint">
-              {streaming ? 'Generating…' : 'Tap a card to flip it'}
-            </p>
+            <p className="results-hint">Tap a card to flip it</p>
           </div>
 
           <div className="cards-grid">
-            {[0, 1, 2].map(i => {
-              const text = starters?.[i]
-              const ready = text !== undefined
-              const isFlipped = flipped[i]
-
-              return (
-                <div
-                  key={i}
-                  className={`flip-card ${isFlipped ? 'flipped' : ''} ${!ready ? 'skeleton' : ''}`}
-                  onClick={() => flipCard(i)}
-                >
-                  <div className="flip-card-inner">
-                    <div className="flip-card-front">
-                      {ready ? (
-                        <>
-                          <div className="card-num">{i + 1}</div>
-                          <div className="card-cta">Tap to reveal</div>
-                        </>
-                      ) : (
-                        <div className="card-loading">
-                          <div className="shimmer-line" />
-                          <div className="shimmer-line short" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flip-card-back" style={{ background: CARD_COLORS[i] }}>
-                      <p className="starter-text">{text}</p>
-                    </div>
+            {starters.map((text, i) => (
+              <div
+                key={i}
+                className={`flip-card ${flipped[i] ? 'flipped' : ''} ${i < visible ? 'card-visible' : 'card-hidden'}`}
+                onClick={() => flipCard(i)}
+              >
+                <div className="flip-card-inner">
+                  <div className="flip-card-front">
+                    <div className="card-num">{i + 1}</div>
+                    <div className="card-cta">Tap to reveal</div>
+                  </div>
+                  <div className="flip-card-back" style={{ background: CARD_COLORS[i] }}>
+                    <p className="starter-text">{text}</p>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
 
           {error && <div className="error-text" style={{ marginTop: 16 }}>{error}</div>}
 
-          {!streaming && (
-            <div className="reshuffle-wrap">
-              <button className="btn btn-outline" onClick={startOver}>Start over</button>
-              <button className="btn btn-outline" onClick={reshuffle}>↺ Reshuffle</button>
-            </div>
-          )}
+          <div className="reshuffle-wrap">
+            <button className="btn btn-outline" onClick={startOver}>Start over</button>
+            <button className="btn btn-outline" onClick={reshuffle}>↺ Reshuffle</button>
+          </div>
         </>
       )}
     </div>
