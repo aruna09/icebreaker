@@ -55,7 +55,11 @@ export default async function handler(req, res) {
     ? `Additional context about this person: "${context.trim()}"`
     : ''
 
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+
   const prompt = `You are helping a remote software developer (Indian, based in Bengaluru, mid-20s) start a conversation with a colleague before a work call.
+
+Today's date: ${today}
 
 Colleague details:
 - Country: ${country}
@@ -65,7 +69,7 @@ ${contextLine}
 
 Generate exactly 3 conversation starters. Each should:
 - Feel genuinely human and specific, not generic
-- Be culturally aware
+- Be culturally aware and seasonally relevant (use today's date to avoid referencing holidays or events that are months away)
 - Avoid weather and "how was your weekend" unless there's a specific hook
 - Be 1–2 sentences max
 - Be something you'd say out loud, not read from a script
