@@ -67,17 +67,23 @@ Colleague details:
 - Meeting type: ${meeting}
 ${contextLine}
 
-Generate exactly 3 conversation starters. Each should:
-- Feel genuinely human and specific, not generic
-- Be culturally aware and seasonally relevant (use today's date to avoid referencing holidays or events that are months away)
-- Avoid weather and "how was your weekend" unless there's a specific hook
-- Be 1–2 sentences max
-- Be something you'd say out loud, not read from a script
+Your job:
+1. Identify one specific, timely cultural hook relevant to ${country} right now — a sports season, ongoing event, recent holiday, cultural moment, or seasonal thing that someone there would actually be thinking about in ${today}. Avoid politics, tragedies, or anything heavy. Keep it light and connecting.
+2. Use that hook naturally in at least one of the starters.
+3. Generate exactly 3 conversation starters that:
+   - Feel genuinely human and specific, not generic
+   - Are culturally aware and seasonally accurate
+   - Avoid "how was your weekend" unless there's a specific hook
+   - Are 1–2 sentences max
+   - Sound like something you'd say out loud, not read from a script
 
 If additional context was provided, at least one starter should reference it.
 
-Respond ONLY with a JSON array of 3 strings. No preamble, no markdown.
-Example: ["starter one", "starter two", "starter three"]`
+Respond ONLY with a JSON object in this exact format. No preamble, no markdown:
+{
+  "hook": "one sentence describing the cultural/seasonal reference you drew from",
+  "starters": ["starter one", "starter two", "starter three"]
+}`
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -89,7 +95,7 @@ Example: ["starter one", "starter two", "starter three"]`
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 250,
+        max_tokens: 400,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -103,15 +109,18 @@ Example: ["starter one", "starter two", "starter three"]`
     const text = data.content?.[0]?.text
     if (!text) return send(res, 500, { error: 'Generation failed' })
 
-    const match = text.match(/\[[\s\S]*\]/)
+    // Parse the JSON object response
+    const match = text.match(/\{[\s\S]*\}/)
     if (!match) return send(res, 500, { error: 'Generation failed' })
 
-    const starters = JSON.parse(match[0])
+    const parsed = JSON.parse(match[0])
+    const { hook, starters } = parsed
+
     if (!Array.isArray(starters) || starters.length !== 3) {
       return send(res, 500, { error: 'Generation failed' })
     }
 
-    send(res, 200, { starters })
+    send(res, 200, { starters, hook: hook || null })
   } catch (err) {
     console.error('Generate error:', err)
     send(res, 500, { error: 'Generation failed' })

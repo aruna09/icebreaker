@@ -38,13 +38,15 @@ export default function App() {
 
   const [loading, setLoading] = useState(false)
   const [starters, setStarters] = useState(null)   // null | string[]
+  const [hook, setHook] = useState(null)            // cultural context string
   const [visible, setVisible] = useState(0)         // how many cards are shown
   const [flipped, setFlipped] = useState([false, false, false])
   const [copiedIdx, setCopiedIdx] = useState(null)
   const [error, setError] = useState('')
 
-  const revealCards = (cards) => {
+  const revealCards = (cards, hookText) => {
     setStarters(cards)
+    setHook(hookText || null)
     setVisible(0)
     // stagger each card appearing: 0ms, 350ms, 700ms
     cards.forEach((_, i) => {
@@ -72,8 +74,8 @@ export default function App() {
       }
       if (!res.ok) throw new Error('API error')
 
-      const { starters: cards } = await res.json()
-      revealCards(cards)
+      const { starters: cards, hook: hookText } = await res.json()
+      revealCards(cards, hookText)
     } catch {
       setError("Couldn't generate — try again")
     } finally {
@@ -83,6 +85,7 @@ export default function App() {
 
   const reshuffle = () => {
     setStarters(null)
+    setHook(null)
     generate()
   }
 
@@ -102,6 +105,7 @@ export default function App() {
     setMeeting('')
     setContext('')
     setStarters(null)
+    setHook(null)
     setVisible(0)
     setFlipped([false, false, false])
     setCopiedIdx(null)
@@ -267,6 +271,13 @@ export default function App() {
               </div>
             ))}
           </div>
+
+          {hook && (
+            <div className="hook-strip">
+              <span className="hook-label">Based on →</span>
+              <span className="hook-text">{hook}</span>
+            </div>
+          )}
 
           {error && <div className="error-text" style={{ marginTop: 16 }}>{error}</div>}
 
