@@ -67,6 +67,13 @@ h1, h2, h3 {
   color: var(--accent);
 }
 
+.subtagline {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  letter-spacing: 0.04em;
+}
+
 /* Step container */
 .card {
   background: var(--surface);

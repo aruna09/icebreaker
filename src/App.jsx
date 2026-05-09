@@ -123,6 +123,7 @@ export default function App() {
         <h1 className="tagline">
           Open with something<br /><span>actually good.</span>
         </h1>
+        <p className="subtagline">No prompting. 30 seconds. Done.</p>
       </header>
 
       {/* Step dots */}
