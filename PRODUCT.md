@@ -96,7 +96,7 @@ Cards reveal one by one with a flip animation. Tap to read.
 ## Prioritised Roadmap
 
 ### Tier 1 — This week (low effort, addresses loudest feedback)
-- [ ] **More countries** — add France, Netherlands, Singapore, Canada, Australia
+- [x] **More countries** — expanded to 20: Australia, Brazil, Canada, China, France, Germany, India, Israel, Italy, Japan, Netherlands, Poland, Portugal, Singapore, South Korea, Spain, Sweden, UAE, UK, USA. Search filter added.
 - [ ] **Copy-to-clipboard** — on card flip, one click copies the starter
 - [ ] **Landing page copy** — add "No prompting. 30 seconds. Done." to address the ChatGPT objection directly
 
