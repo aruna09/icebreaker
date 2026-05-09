@@ -101,7 +101,7 @@ Cards reveal one by one with a flip animation. Tap to read.
 - [ ] **Landing page copy** — add "No prompting. 30 seconds. Done." to address the ChatGPT objection directly
 
 ### Tier 2 — Next sprint (medium effort, meaningful UX improvement)
-- [ ] **Local news hook** — surface one current thing happening in the colleague's country alongside starters. Keeps outputs fresh. Needs a news API or a second Claude call.
+- [x] **Cultural hook** — Claude identifies one timely, non-political cultural reference for the country and uses it in at least one starter. Displayed as a "Based on →" strip below the cards. No extra API — Claude's knowledge handles seasonal/cultural context well enough for small talk.
 - [ ] **Share a starter via link** — generate a shareable URL for a specific starter
 
 ### Tier 3 — Longer term (high effort, high ceiling)
