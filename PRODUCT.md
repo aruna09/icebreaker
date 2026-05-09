@@ -98,11 +98,11 @@ Cards reveal one by one with a flip animation. Tap to read.
 ### Tier 1 — This week (low effort, addresses loudest feedback)
 - [x] **More countries** — expanded to 20: Australia, Brazil, Canada, China, France, Germany, India, Israel, Italy, Japan, Netherlands, Poland, Portugal, Singapore, South Korea, Spain, Sweden, UAE, UK, USA. Search filter added.
 - [x] **Copy-to-clipboard** — pill button on card back, shows '✓ Copied' for 1.5s, doesn't interfere with flip
-- [ ] **Landing page copy** — add "No prompting. 30 seconds. Done." to address the ChatGPT objection directly
+- [x] **Landing page copy** — "No prompting. 30 seconds. Done." added as subtagline
 
 ### Tier 2 — Next sprint (medium effort, meaningful UX improvement)
 - [x] **Cultural hook** — Claude identifies one timely, non-political cultural reference for the country and uses it in at least one starter. Displayed as a "Based on →" strip below the cards. No extra API — Claude's knowledge handles seasonal/cultural context well enough for small talk.
-- [ ] **Share a starter via link** — generate a shareable URL for a specific starter
+- [x] **Share a starter via link** — Share button on card back generates /?s=<base64> URL, copies to clipboard. Shared URL shows a standalone view with the starter and "Generate your own →" CTA.
 
 ### Tier 3 — Longer term (high effort, high ceiling)
 - [ ] **Calendar integration** — read the user's next meeting, detect the colleague's location, pre-generate starters automatically
