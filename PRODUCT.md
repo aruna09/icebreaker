@@ -97,7 +97,7 @@ Cards reveal one by one with a flip animation. Tap to read.
 
 ### Tier 1 — This week (low effort, addresses loudest feedback)
 - [x] **More countries** — expanded to 20: Australia, Brazil, Canada, China, France, Germany, India, Israel, Italy, Japan, Netherlands, Poland, Portugal, Singapore, South Korea, Spain, Sweden, UAE, UK, USA. Search filter added.
-- [ ] **Copy-to-clipboard** — on card flip, one click copies the starter
+- [x] **Copy-to-clipboard** — pill button on card back, shows '✓ Copied' for 1.5s, doesn't interfere with flip
 - [ ] **Landing page copy** — add "No prompting. 30 seconds. Done." to address the ChatGPT objection directly
 
 ### Tier 2 — Next sprint (medium effort, meaningful UX improvement)
