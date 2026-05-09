@@ -1,4 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+function decodeShared() {
+  try {
+    const s = new URLSearchParams(window.location.search).get('s')
+    return s ? decodeURIComponent(atob(s)) : null
+  } catch {
+    return null
+  }
+}
 
 const COUNTRIES = [
   { name: 'Australia', flag: '🇦🇺' },
@@ -28,6 +37,7 @@ const MEETING_TYPES = ['Sync check-in', '1:1', 'Project kickoff']
 const CARD_COLORS = ['#FFD166', '#06D6A0', '#118AB2']
 
 export default function App() {
+  const [sharedStarter, setSharedStarter] = useState(() => decodeShared())
   const [step, setStep] = useState(1)
   const [country, setCountry] = useState('')
   const [age, setAge] = useState('')
@@ -97,6 +107,17 @@ export default function App() {
     })
   }
 
+  const [sharedIdx, setSharedIdx] = useState(null)
+  const shareStarter = (text, i, e) => {
+    e.stopPropagation()
+    const encoded = btoa(encodeURIComponent(text))
+    const url = `${window.location.origin}/?s=${encoded}`
+    navigator.clipboard.writeText(url).then(() => {
+      setSharedIdx(i)
+      setTimeout(() => setSharedIdx(null), 1500)
+    })
+  }
+
   const startOver = () => {
     setStep(1)
     setCountry('')
@@ -119,6 +140,30 @@ export default function App() {
   }
 
   const showCards = starters !== null
+
+  // ── Shared starter view ──
+  if (sharedStarter) {
+    return (
+      <div className="app">
+        <header className="header">
+          <div className="logo">IceBreak</div>
+        </header>
+        <div className="shared-card">
+          <div className="shared-label">Someone shared an opener with you</div>
+          <blockquote className="shared-text">"{sharedStarter}"</blockquote>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              window.history.replaceState({}, '', '/')
+              setSharedStarter(null)
+            }}
+          >
+            Generate your own →
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
@@ -259,13 +304,20 @@ export default function App() {
                   </div>
                   <div className="flip-card-back" style={{ background: CARD_COLORS[i] }}>
                     <p className="starter-text">{text}</p>
-                    <button
-                      className="copy-btn"
-                      onClick={(e) => copyStarter(text, i, e)}
-                      title="Copy to clipboard"
-                    >
-                      {copiedIdx === i ? '✓ Copied' : 'Copy'}
-                    </button>
+                    <div className="card-actions">
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => copyStarter(text, i, e)}
+                      >
+                        {copiedIdx === i ? '✓ Copied' : 'Copy'}
+                      </button>
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => shareStarter(text, i, e)}
+                      >
+                        {sharedIdx === i ? '✓ Link copied' : 'Share'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

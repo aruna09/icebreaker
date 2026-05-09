@@ -443,10 +443,15 @@ textarea:focus {
   color: #0F0E17;
 }
 
-.copy-btn {
+.card-actions {
   position: absolute;
   bottom: 10px;
   right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.card-action-btn {
   background: rgba(0, 0, 0, 0.15);
   border: none;
   border-radius: 20px;
@@ -460,12 +465,46 @@ textarea:focus {
   letter-spacing: 0.03em;
 }
 
-.copy-btn:hover {
+.card-action-btn:hover {
   background: rgba(0, 0, 0, 0.25);
 }
 
-.copy-btn:active {
+.card-action-btn:active {
   transform: scale(0.95);
+}
+
+/* Shared starter view */
+.shared-card {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.shared-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.shared-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  border: none;
+  margin: 0;
+  padding: 0 8px;
 }
 
 .hook-strip {
