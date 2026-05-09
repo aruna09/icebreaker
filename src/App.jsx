@@ -1,11 +1,26 @@
 import { useState } from 'react'
 
 const COUNTRIES = [
+  { name: 'Australia', flag: '🇦🇺' },
+  { name: 'Brazil', flag: '🇧🇷' },
+  { name: 'Canada', flag: '🇨🇦' },
+  { name: 'China', flag: '🇨🇳' },
+  { name: 'France', flag: '🇫🇷' },
   { name: 'Germany', flag: '🇩🇪' },
-  { name: 'USA', flag: '🇺🇸' },
-  { name: 'UK', flag: '🇬🇧' },
   { name: 'India', flag: '🇮🇳' },
+  { name: 'Israel', flag: '🇮🇱' },
+  { name: 'Italy', flag: '🇮🇹' },
   { name: 'Japan', flag: '🇯🇵' },
+  { name: 'Netherlands', flag: '🇳🇱' },
+  { name: 'Poland', flag: '🇵🇱' },
+  { name: 'Portugal', flag: '🇵🇹' },
+  { name: 'Singapore', flag: '🇸🇬' },
+  { name: 'South Korea', flag: '🇰🇷' },
+  { name: 'Spain', flag: '🇪🇸' },
+  { name: 'Sweden', flag: '🇸🇪' },
+  { name: 'UAE', flag: '🇦🇪' },
+  { name: 'UK', flag: '🇬🇧' },
+  { name: 'USA', flag: '🇺🇸' },
 ]
 
 const AGE_GROUPS = ['20s–30s', '40s–50s', '60+']
@@ -18,6 +33,8 @@ export default function App() {
   const [age, setAge] = useState('')
   const [meeting, setMeeting] = useState('')
   const [context, setContext] = useState('')
+
+  const [countrySearch, setCountrySearch] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [starters, setStarters] = useState(null)   // null | string[]
@@ -71,6 +88,7 @@ export default function App() {
   const startOver = () => {
     setStep(1)
     setCountry('')
+    setCountrySearch('')
     setAge('')
     setMeeting('')
     setContext('')
@@ -111,8 +129,17 @@ export default function App() {
         <div className="card">
           <div className="step-label">Step 1 of 3</div>
           <h2 className="step-title">Where are they from?</h2>
-          <div className="options">
-            {COUNTRIES.map(c => (
+          <input
+            className="country-search"
+            type="text"
+            placeholder="Search country…"
+            value={countrySearch}
+            onChange={e => setCountrySearch(e.target.value)}
+          />
+          <div className="options country-options">
+            {COUNTRIES.filter(c =>
+              c.name.toLowerCase().includes(countrySearch.toLowerCase())
+            ).map(c => (
               <button
                 key={c.name}
                 className={`pill country ${country === c.name ? 'selected' : ''}`}

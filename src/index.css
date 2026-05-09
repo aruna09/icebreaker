@@ -125,7 +125,37 @@ h1, h2, h3 {
   color: var(--accent);
 }
 
-/* Country pills — wider */
+/* Country search input */
+.country-search {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  margin-bottom: 14px;
+}
+
+.country-search::placeholder {
+  color: var(--text-muted);
+}
+
+.country-search:focus {
+  border-color: var(--accent-border);
+}
+
+/* Country pills — wider, scrollable container */
+.country-options {
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
 .pill.country {
   font-size: 15px;
   padding: 12px 20px;
