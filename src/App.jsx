@@ -40,6 +40,7 @@ export default function App() {
   const [starters, setStarters] = useState(null)   // null | string[]
   const [visible, setVisible] = useState(0)         // how many cards are shown
   const [flipped, setFlipped] = useState([false, false, false])
+  const [copiedIdx, setCopiedIdx] = useState(null)
   const [error, setError] = useState('')
 
   const revealCards = (cards) => {
@@ -85,6 +86,14 @@ export default function App() {
     generate()
   }
 
+  const copyStarter = (text, i, e) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedIdx(i)
+      setTimeout(() => setCopiedIdx(null), 1500)
+    })
+  }
+
   const startOver = () => {
     setStep(1)
     setCountry('')
@@ -95,6 +104,7 @@ export default function App() {
     setStarters(null)
     setVisible(0)
     setFlipped([false, false, false])
+    setCopiedIdx(null)
     setError('')
   }
 
@@ -227,7 +237,7 @@ export default function App() {
         <>
           <div className="results-header">
             <h2 className="results-title">Your openers</h2>
-            <p className="results-hint">Tap a card to flip it</p>
+            <p className="results-hint">Tap to flip · Copy to use</p>
           </div>
 
           <div className="cards-grid">
@@ -244,6 +254,13 @@ export default function App() {
                   </div>
                   <div className="flip-card-back" style={{ background: CARD_COLORS[i] }}>
                     <p className="starter-text">{text}</p>
+                    <button
+                      className="copy-btn"
+                      onClick={(e) => copyStarter(text, i, e)}
+                      title="Copy to clipboard"
+                    >
+                      {copiedIdx === i ? '✓ Copied' : 'Copy'}
+                    </button>
                   </div>
                 </div>
               </div>
