@@ -107,6 +107,24 @@ export default function App() {
     })
   }
 
+  const [email, setEmail] = useState('')
+  const [emailStatus, setEmailStatus] = useState('idle') // idle | loading | done | error
+
+  const submitEmail = async (e) => {
+    e.preventDefault()
+    setEmailStatus('loading')
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      setEmailStatus(res.ok ? 'done' : 'error')
+    } catch {
+      setEmailStatus('error')
+    }
+  }
+
   const [sharedIdx, setSharedIdx] = useState(null)
   const shareStarter = (text, i, e) => {
     e.stopPropagation()
@@ -130,6 +148,8 @@ export default function App() {
     setVisible(0)
     setFlipped([false, false, false])
     setCopiedIdx(null)
+    setEmail('')
+    setEmailStatus('idle')
     setError('')
   }
 
@@ -329,6 +349,34 @@ export default function App() {
               <span className="hook-label">Based on →</span>
               <span className="hook-text">{hook}</span>
             </div>
+          )}
+
+          {emailStatus !== 'done' ? (
+            <form className="email-capture" onSubmit={submitEmail}>
+              <p className="email-label">Want updates when new features ship?</p>
+              <div className="email-row">
+                <input
+                  type="email"
+                  className="email-input"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary email-btn"
+                  disabled={emailStatus === 'loading'}
+                >
+                  {emailStatus === 'loading' ? '…' : 'Notify me'}
+                </button>
+              </div>
+              {emailStatus === 'error' && (
+                <p className="email-error">Couldn't save — try again</p>
+              )}
+            </form>
+          ) : (
+            <p className="email-done">You're in ✓ — we'll let you know when things ship.</p>
           )}
 
           {error && <div className="error-text" style={{ marginTop: 16 }}>{error}</div>}
