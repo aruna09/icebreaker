@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 
 function decodeShared() {
   try {
@@ -387,6 +388,7 @@ export default function App() {
           </div>
         </>
       )}
+      <Analytics />
     </div>
   )
 }
